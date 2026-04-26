@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canisters CMEB</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#d1d5db;
+      --blue:#1787b8;
+      --blue-dark:#0f6f99;
+      --blue-light:#74c7e8;
+      --empty:#e5e7eb;
+      --occupied:#fbbf24;
+      --problem:#f87171;
+      --selected:#2563eb;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    header{
+      padding:22px 28px;
+      background:white;
+      border-bottom:1px solid var(--line);
+    }
+
+    h1{margin:0;font-size:28px}
+    p{color:var(--muted)}
+
+    .canisterTabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .canisterTab{
+      border:1px solid var(--line);
+      background:#e5e7eb;
+      color:#111827;
+      border-radius:999px;
+      padding:9px 14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .canisterTab.active{
+      background:var(--selected);
+      color:white;
+      border-color:var(--selected);
+    }
+
+    main{
+      display:grid;
+      grid-template-columns:1.35fr .8fr;
+      gap:22px;
+      padding:22px;
+    }
+
+    .panel{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+    }
+
+    .puckShelf{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:18px;
+    }
+
+    .puckCard{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:#fafafa;
+    }
+
+    .puckTitle{
+      font-weight:800;
+      margin-bottom:10px;
+      display:flex;
+      justify-content:space-between;
+      color:#334155;
+    }
+
+    .puck{
+      position:relative;
+      width:230px;
+      height:230px;
+      margin:auto;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.18) 0 22%, transparent 23%),
+        radial-gradient(circle at 50% 50%, var(--blue) 0 62%, var(--blue-dark) 63% 100%);
+      border:7px solid #cbd5e1;
+      box-shadow:
+        inset 0 0 0 6px rgba(116,199,232,.38),
+        inset 0 -12px 22px rgba(15,23,42,.16),
+        0 10px 22px rgba(15,23,42,.10);
+      overflow:hidden;
+    }
+
+    .slot{
+      position:absolute;
+      width:43px;
+      height:43px;
+      border-radius:50%;
+      background:var(--empty);
+      border:4px solid rgba(15,23,42,.75);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+      color:#1f2937;
+      box-shadow:
+        inset 0 3px 8px rgba(255,255,255,.8),
+        inset 0 -4px 8px rgba(0,0,0,.15),
+        0 2px 5px rgba(15,23,42,.16);
+      transition:.12s transform,.12s outline;
+    }
+
+    .slot:hover{transform:scale(1.06)}
+    .slot.selected{outline:4px solid rgba(37,99,235,.45);z-index:5}
+    .slot.occupied{background:var(--occupied)}
+    .slot.problem{background:var(--problem)}
+
+    input,select,textarea,button{
+      font:inherit;
+      border-radius:10px;
+      border:1px solid var(--line);
+      padding:9px 11px;
+      background:#fff;
+      width:100%;
+    }
+
+    button{
+      cursor:pointer;
+      background:var(--selected);
+      border:0;
+      color:white;
+      font-weight:800;
+      width:auto;
+    }
+
+    .secondary{background:#e5e7eb;color:#111827}
+
+    label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin:12px 0 5px;
+    }
+
+    .gridBox{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .gridPos{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      background:#f9fafb;
+      cursor:pointer;
+      min-height:88px;
+    }
+
+    .gridPos.selected{
+      outline:4px solid rgba(37,99,235,.25);
+      border-color:var(--selected);
+    }
+
+    .formGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    textarea{min-height:78px}
+
+    .legend{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .dot{
+      display:inline-block;
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      border:1px solid #999;
+      margin-right:5px;
+      vertical-align:-1px;
+    }
+
+    pre{
+      white-space:pre-wrap;
+      background:#111827;
+      color:#e5e7eb;
+      padding:12px;
+      border-radius:12px;
+      max-height:200px;
+      overflow:auto;
+      font-size:12px;
+    }
+
+
+#gridBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.gridBoxCode {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.gridPos {
+  width: calc(50% - 6px);
+}
+
+    @media(max-width:900px){main{grid-template-columns:1fr}.puck{width:220px;height:220px}}
+  </style>
+</head>
+<body>
+<header>
+  <h1 id="appTitle">Canister 1</h1>
+  <p>6 canisters. Cada canister tem 10 pucks, cada puck tem 12 posições e cada posição representa uma grid box com 4 grids. Os dados são carregados do Google Sheets.</p>
+  <div id="canisterTabs" class="canisterTabs"></div>
+</header>
+
+<main>
+  <section class="panel">
+    <div id="puckShelf" class="puckShelf"></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--empty)"></span>vazio</span>
+      <span><span class="dot" style="background:var(--occupied)"></span>com amostra</span>
+      <span><span class="dot" style="background:var(--problem)"></span>problema</span>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2 style="margin-top:0">Detalhes</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="secondary" onclick="loadFromSheets()">Atualizar do Sheets</button>
+    </div>
+    <p id="syncStatus" style="font-size:13px;color:var(--muted)">Carregando dados...</p>
+    <p id="selectionText">Clique em uma posição do puck.</p>
+
+    <div id="boxEditor" style="display:none">
+      <h3>Grid box</h3>
+      <div id="gridBox" class="gridBox"></div>
+
+      <h3>Editar grid</h3>
+      <div class="formGrid">
+        <div><label>ID da amostra</label><input id="sampleId" placeholder="ex.: CMEB-001"></div>
+        <div><label>Usuário</label><input id="userName" placeholder="ex.: usuário"></div>
+        <div><label>Tipo</label><input id="sampleType" placeholder="ex.: célula, proteína"></div>
+        <div><label>Status</label><select id="status"><option value="empty">vazio</option><option value="occupied">com amostra</option><option value="problem">problema</option></select></div>
+      </div>
+
+      <label>Observações</label>
+      <textarea id="notes" placeholder="Ex.: Quantifoil R2/1, vitrificado em 25/04, condição X..."></textarea>
+
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button onclick="saveGrid()">Salvar grid</button>
+        <button class="secondary" onclick="clearGrid()">Limpar grid</button>
+        <button class="secondary" onclick="exportJSON()">Exportar JSON</button>
+        <button class="secondary" onclick="clearBrowserStorage()">Apagar dados salvos</button>
+      </div>
+
+      <h3>JSON</h3>
+      <pre id="jsonOutput">{}</pre>
+    </div>
+  </aside>
+</main>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbyT4-FgccbJr1aeGFSm0T5kUpTEHGAeRGqsIUoIZ8AS06JQnivUkJiA2_XHheYd95OsWg/exec";
+
+const CANISTERS = 6;
+const PUCKS = 10;
+const POSITIONS = 12;
+const GRIDS_PER_BOX = 4;
+let data = {};
+let selected = {canister:1, puck:null, slot:null, grid:null};
+
+// Layout organizado, simétrico e limpo. Sem furos/bolinhas fake.
+const coords = {
+  1:[93,18],
+  2:[139,34],
+  3:[166,75],
+  4:[151,123],
+  5:[116,158],
+  6:[71,158],
+  7:[36,123],
+  8:[21,75],
+  9:[47,34],
+  10:[70,82],
+  11:[116,82],
+  12:[93,119]
+};
+
+function emptyGrid(){
+  return {sampleId:'', userName:'', sampleType:'', status:'empty', notes:''};
+}
+
+function canisterKey(canister = selected.canister){
+  return `Canister ${canister}`;
+}
+
+function ensureSlot(puck, slot, canister = selected.canister){
+  const cKey = canisterKey(canister);
+  const puckKey = `Puck ${puck}`;
+  const slotKey = `Box ${slot}`;
+  data[cKey] ||= {};
+  data[cKey][puckKey] ||= {};
+  data[cKey][puckKey][slotKey] ||= Array.from({length:GRIDS_PER_BOX}, emptyGrid);
+  return data[cKey][puckKey][slotKey];
+}
+
+function slotStatus(puck, slot){
+  const grids = data[canisterKey()]?.[`Puck ${puck}`]?.[`Box ${slot}`];
+  if(!grids) return 'empty';
+  if(grids.some(g => g.status === 'problem')) return 'problem';
+  if(grids.some(g => g.status === 'occupied')) return 'occupied';
+  return 'empty';
+}
+
+function renderCanisterTabs(){
+  const tabs = document.getElementById('canisterTabs');
+  tabs.innerHTML = '';
+
+  for(let c=1; c<=CANISTERS; c++){
+    const btn = document.createElement('button');
+    btn.className = 'canisterTab' + (selected.canister === c ? ' active' : '');
+    btn.textContent = `Canister ${c}`;
+    btn.onclick = () => switchCanister(c);
+    tabs.appendChild(btn);
+  }
+
+  document.getElementById('appTitle').textContent = `Canister ${selected.canister}`;
+}
+
+function switchCanister(canister){
+  selected = {canister, puck:null, slot:null, grid:null};
+  document.getElementById('boxEditor').style.display = 'none';
+  document.getElementById('selectionText').textContent = `Canister ${canister}: clique em uma posição do puck.`;
+  build();
+}
+
+function build(){
+  renderCanisterTabs();
+
+  const shelf = document.getElementById('puckShelf');
+  shelf.innerHTML = '';
+
+  for(let p=1; p<=PUCKS; p++){
+    const card = document.createElement('div');
+    card.className = 'puckCard';
+    card.innerHTML = `<div class="puckTitle"><span>Puck ${p}</span><small>12 posições</small></div>`;
+
+    const puck = document.createElement('div');
+    puck.className = 'puck';
+
+    for(let s=1; s<=POSITIONS; s++){
+      const slot = document.createElement('div');
+      slot.className = `slot ${slotStatus(p,s)}`;
+      slot.dataset.puck = p;
+      slot.dataset.slot = s;
+      slot.textContent = s;
+      slot.style.left = coords[s][0] + 'px';
+      slot.style.top = coords[s][1] + 'px';
+      slot.onclick = () => selectSlot(p,s);
+      puck.appendChild(slot);
+    }
+
+    card.appendChild(puck);
+    shelf.appendChild(card);
+  }
+
+  refreshSelection();
+  updateJSONPreview();
+}
+
+function selectSlot(puck, slot){
+  selected = {canister:selected.canister, puck, slot, grid:1};
+  ensureSlot(puck, slot);
+  document.getElementById('boxEditor').style.display = 'block';
+  document.getElementById('selectionText').textContent = `Selecionado: Canister ${selected.canister}, Puck ${puck}, posição ${slot}`;
+  renderGridBox();
+  loadGridForm();
+  refreshSelection();
+  updateJSONPreview();
+}
+
+function renderGridBox(){
+  const box = document.getElementById('gridBox');
+  box.innerHTML = '';
+
+  const slot = ensureSlot(selected.puck, selected.slot);
+
+  const boxInput = document.createElement('input');
+  boxInput.value = slot.boxCode || '';
+  boxInput.placeholder = 'Código do Grid box';
+  boxInput.className = 'gridBoxCode fullWidth';
+
+  boxInput.oninput = () => {
+    slot.boxCode = boxInput.value;
+    persist();
+  };
+
+  box.appendChild(boxInput);
+
+  slot.forEach((grid, index) => {
+    const div = document.createElement('div');
+    div.className = 'gridPos' + (selected.grid === index + 1 ? ' selected' : '');
+
+    div.onclick = () => {
+      selected.grid = index + 1;
+      renderGridBox();
+      loadGridForm();
+    };
+
+    div.innerHTML = `
+      <strong>Grid ${index + 1}</strong>
+      <small>
+        <br>${grid.sampleId || 'sem ID'}
+        <br>${grid.userName || 'sem usuário'}
+        <br>Status: ${label(grid.status)}
+      </small>
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+function label(status){
+  return {empty:'vazio', occupied:'com amostra', problem:'problema'}[status || 'empty'] || 'vazio';
+}
+
+function loadGridForm(){
+  const grid = ensureSlot(selected.puck, selected.slot)[selected.grid - 1];
+  document.getElementById('sampleId').value = grid.sampleId || '';
+  document.getElementById('userName').value = grid.userName || '';
+  document.getElementById('sampleType').value = grid.sampleType || '';
+  document.getElementById('status').value = grid.status || 'empty';
+  document.getElementById('notes').value = grid.notes || '';
+}
+
+function saveGrid(){
+  const grid = ensureSlot(selected.puck, selected.slot)[selected.grid - 1];
+
+  const sampleIdEl = document.getElementById('sampleId');
+  const userNameEl = document.getElementById('userName');
+  const sampleTypeEl = document.getElementById('sampleType');
+  const statusEl = document.getElementById('status');
+  const notesEl = document.getElementById('notes');
+
+  grid.sampleId = sampleIdEl.value.trim();
+  grid.userName = userNameEl.value.trim();
+  grid.sampleType = sampleTypeEl.value.trim();
+  grid.notes = notesEl.value.trim();
+
+  const hasAnyInfo = Boolean(grid.sampleId || grid.userName || grid.sampleType || grid.notes);
+  let chosenStatus = statusEl.value || 'empty';
+
+  // Se tiver qualquer informação preenchida, não deixa o status ficar vazio.
+  if (hasAnyInfo && chosenStatus === 'empty') {
+    chosenStatus = 'occupied';
+    statusEl.value = 'occupied';
+  }
+
+  grid.status = chosenStatus;
+
+  persist();
+  renderGridBox();
+  build();
+  sendGridToSheets(grid);
+}
+
+function sendGridToSheets(grid){
+  setSyncStatus('Salvando no Google Sheets...');
+
+  fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({
+      canister: selected.canister,
+      puck: selected.puck,
+      box: selected.slot,
+      boxCode: ensureSlot(selected.puck, selected.slot).boxCode || '',
+      grid: selected.grid,
+      sampleId: grid.sampleId,
+      user: grid.userName,
+      type: grid.sampleType,
+      status: grid.status,
+      notes: grid.notes
+    })
+  }).then(() => {
+    setSyncStatus('Salvo no Google Sheets.');
+  }).catch(error => {
+    console.error('Erro ao enviar para o Google Sheets:', error);
+    setSyncStatus('Não consegui salvar no Google Sheets. Veja o console.');
+  });
+}
+
+async function loadFromSheets(){
+  setSyncStatus('Carregando do Google Sheets...');
+
+  try{
+    const response = await fetch(API_URL);
+    const rows = await response.json();
+
+    const imported = {};
+    const headers = rows[0] || [];
+
+    function headerIndex(name, fallback){
+      const idx = headers.findIndex(h => String(h).trim().toLowerCase() === name.toLowerCase());
+      return idx >= 0 ? idx : fallback;
+    }
+
+    const hasCanisterColumn = headers.some(h => String(h).trim().toLowerCase() === 'canister');
+
+    const idxCanister = hasCanisterColumn ? headerIndex('Canister', 1) : null;
+    const idxPuck = headerIndex('Puck', hasCanisterColumn ? 2 : 1);
+    const idxBox = headerIndex('Box', hasCanisterColumn ? 3 : 2);
+    const idxBoxCode = headerIndex('BoxCode', hasCanisterColumn ? 4 : 3);
+    const idxGrid = headerIndex('Grid', hasCanisterColumn ? 5 : 4);
+    const idxSampleID = headerIndex('SampleID', hasCanisterColumn ? 6 : 5);
+    const idxUser = headerIndex('User', hasCanisterColumn ? 7 : 6);
+    const idxType = headerIndex('Type', hasCanisterColumn ? 8 : 7);
+    const idxStatus = headerIndex('Status', hasCanisterColumn ? 9 : 8);
+    const idxNotes = headerIndex('Notes', hasCanisterColumn ? 10 : 9);
+
+    rows.slice(1).forEach(row => {
+      const canister = hasCanisterColumn ? Number(row[idxCanister]) : 1;
+      const puck = Number(row[idxPuck]);
+      const box = Number(row[idxBox]);
+      const boxCode = row[idxBoxCode] || '';
+      const gridNumber = Number(row[idxGrid]);
+
+      if(!canister || !puck || !box || !gridNumber) return;
+
+      const cKey = `Canister ${canister}`;
+      const puckKey = `Puck ${puck}`;
+      const boxKey = `Box ${box}`;
+
+      imported[cKey] ||= {};
+      imported[cKey][puckKey] ||= {};
+      imported[cKey][puckKey][boxKey] ||= Array.from({length:GRIDS_PER_BOX}, emptyGrid);
+
+      const slot = imported[cKey][puckKey][boxKey];
+      slot.boxCode = boxCode;
+
+      slot[gridNumber - 1] = {
+        sampleId: row[idxSampleID] || '',
+        userName: row[idxUser] || '',
+        sampleType: row[idxType] || '',
+        status: row[idxStatus] || 'empty',
+        notes: row[idxNotes] || ''
+      };
+    });
+
+    data = imported;
+    persist();
+    build();
+
+    if(selected.puck && selected.slot){
+      renderGridBox();
+      loadGridForm();
+    }
+
+    setSyncStatus('Dados carregados do Google Sheets.');
+  } catch(error){
+    console.error('Erro ao carregar do Google Sheets:', error);
+    setSyncStatus('Não consegui carregar do Google Sheets. Confira o Apps Script e o link /exec.');
+  }
+}
+
+function setSyncStatus(message){
+  const el = document.getElementById('syncStatus');
+  if(el) el.textContent = message;
+}
+
+function clearGrid(){
+  ensureSlot(selected.puck, selected.slot)[selected.grid - 1] = emptyGrid();
+  persist();
+  loadGridForm();
+  renderGridBox();
+  build();
+}
+
+function refreshSelection(){
+  document.querySelectorAll('.slot').forEach(el => {
+    el.classList.toggle('selected', Number(el.dataset.puck) === selected.puck && Number(el.dataset.slot) === selected.slot);
+  });
+}
+
+function persist(){
+  localStorage.setItem('canistersData', JSON.stringify(data));
+}
+
+function migrateOldDataIfNeeded(savedData){
+  if(savedData && !savedData['Canister 1'] && Object.keys(savedData).some(k => k.startsWith('Puck '))){
+    return {'Canister 1': savedData};
+  }
+  return savedData || {};
+}
+
+function loadPersisted(){
+  const savedNew = localStorage.getItem('canistersData');
+  const savedOld = localStorage.getItem('canister1Data');
+  const saved = savedNew || savedOld;
+  if(saved){
+    try{ data = migrateOldDataIfNeeded(JSON.parse(saved)); }
+    catch(e){ data = {}; }
+  }
+}
+
+function clearBrowserStorage(){
+  if(!confirm('Apagar todos os dados salvos neste navegador?')) return;
+  localStorage.removeItem('canistersData');
+  localStorage.removeItem('canister1Data');
+  data = {};
+  selected = {canister:1, puck:null, slot:null, grid:null};
+  boxEditor.style.display = 'none';
+  selectionText.textContent = 'Clique em uma posição do puck.';
+  build();
+}
+
+function updateJSONPreview(){
+  const out = document.getElementById('jsonOutput');
+  if(out) out.textContent = JSON.stringify(data, null, 2);
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'canisters-cmeb.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+loadPersisted();
+build();
+loadFromSheets();
+</script>
+</body>
+</html>

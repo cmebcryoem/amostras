@@ -305,6 +305,23 @@
 </main>
 
 <script>
+  const APP_PASSWORD = "cmeb123!@#"; // MUDE AQUI
+
+function checkPassword() {
+  let saved = sessionStorage.getItem("auth");
+
+  if (saved === "ok") return true;
+
+  const input = prompt("Digite a senha para acessar o sistema:");
+
+  if (input === APP_PASSWORD) {
+    sessionStorage.setItem("auth", "ok");
+    return true;
+  }
+
+  alert("Senha incorreta.");
+  return false;
+}
 const API_URL = "https://script.google.com/macros/s/AKfycbyT4-FgccbJr1aeGFSm0T5kUpTEHGAeRGqsIUoIZ8AS06JQnivUkJiA2_XHheYd95OsWg/exec";
 
 const CANISTERS = 6;
@@ -676,9 +693,13 @@ function exportJSON(){
   URL.revokeObjectURL(url);
 }
 
-loadPersisted();
-build();
-loadFromSheets();
+if (checkPassword()) {
+  loadPersisted();
+  build();
+  loadFromSheets();
+} else {
+  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px'>Acesso negado</h2>";
+}
 </script>
 </body>
 </html>
